@@ -13,14 +13,15 @@ permissions:
 
 jobs:
   index:
-    runs-on: linux.g5.4xlarge.nvidia.gpu # 1 GPU A10G 24GB each
+    runs-on: linux.g5.4xlarge.nvidia.gpu
     environment: target-determinator-env
-    # container:
-    #   image: pytorch/manylinux-builder:cuda12.1
-    #   options: '--gpus all'
     steps:
       - name: Clone PyTorch
-        uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+        uses: actions/checkout@v3
+        with:
+          repository: pytorch/pytorch
+          fetch-depth: 0
+          path: pytorch
 
       - name: Clone CodeLlama
         uses: actions/checkout@v3
@@ -32,8 +33,8 @@ jobs:
       - name: Clone Target Determination Code
         uses: actions/checkout@v3
         with:
-          repository: osalpekar/llm-target-determinator
-          ref: main
+          repository: clee2000/llm-target-determinator
+          ref: csl/testing
           path: llm-target-determinator
 
       - name: Setup Conda
@@ -52,13 +53,12 @@ jobs:
             --name "tdenv" \
             "python=3.9"
           conda activate tdenv
-          cd "${GITHUB_WORKSPACE}"
-          ls
-          pwd
-          cd llm-target-determinator
+          pip install awscli==1.29.40
+          cd "${GITHUB_WORKSPACE}/llm-target-determinator"
           pip install -r requirements.txt
           cd ../codellama
           pip install -e .
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -70,33 +70,44 @@ jobs:
         run: |
           set -euxo pipefail
           conda activate tdenv
-          pip install awscli
           cd codellama/
-          aws s3 cp "s3://target-determinator-assets/CodeLlama-7b-Python" . --recursive
-          ls
-      - name: Run Indexer
+          mkdir "CodeLlama-7b-Python"
+          aws s3 cp "s3://target-determinator-assets/CodeLlama-7b-Python" "CodeLlama-7b-Python" --recursive
+
+      - name: Run Retriever
         shell: bash -l {0}
         run: |
           set -euxo pipefail
           conda activate tdenv
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
-          python create_filelist.py \
-            --project-dir "${GITHUB_WORKSPACE}/pytorch"
           torchrun \
             --standalone \
             --nnodes=1 \
             --nproc-per-node=1 \
-            indexer.py \
-            --experiment-name indexer-output
-          ls -R assets/indexer-output
-      # - name: Upload Index to S3
-      #   shell: bash -l {0}
-      #   run: |
-      #     set -euxo pipefail
+            retriever.py \
+            --experiment-name indexer-files \
+            --git-diff
 
-      #     conda activate tdenv
-      #     pip install awscli
-      #     # TODO: Need to create subdirectory in bucket and expand "pkg" path
-      #     for pkg in "${GITHUB_WORKSPACE}"/llm-target-determinator/assets/indexer-output/*; do
-      #       aws s3 cp "$pkg" "s3://target-determinator-assets"
-      #     done
+          torchrun \
+            --standalone \
+            --nnodes=1 \
+            --nproc-per-node=1 \
+            retriever.py \
+            --experiment-name indexer-files \
+            --changed-files
+
+          torchrun \
+            --standalone \
+            --nnodes=1 \
+            --nproc-per-node=1 \
+            retriever.py \
+            --experiment-name indexer-functions \
+            --git-diff
+
+          torchrun \
+            --standalone \
+            --nnodes=1 \
+            --nproc-per-node=1 \
+            retriever.py \
+            --experiment-name indexer-functions \
+            --changed-files
