@@ -81,7 +81,7 @@ jobs:
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
           aws s3 cp "s3://target-determinator-assets/indexes/indexer-functions.zip" "indexer-functions.zip"
           unzip indexer-functions.zip
-          aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip "indexer-files.zip"
+          aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip" "indexer-files.zip"
           unzip indexer-functions.zip
           ls assets
           ls assets/indexer-files
