@@ -80,6 +80,7 @@ jobs:
           conda activate tdenv
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
           aws s3 cp "s3://target-determinator-assets/indexes/indexer-functions.zip" "indexer-functions.zip" --recursive
+          ls
           unzip indexer-functions.zip -d assets/indexer-functions
           aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip "indexer-files.zip" --recursive
           unzip indexer-functions.zip -d assets/indexer-files
