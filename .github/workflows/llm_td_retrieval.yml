@@ -74,6 +74,19 @@ jobs:
           mkdir "CodeLlama-7b-Python"
           aws s3 cp "s3://target-determinator-assets/CodeLlama-7b-Python" "CodeLlama-7b-Python" --recursive
 
+      - name: Fetch indexes
+        shell: bash -l {0}
+        run: |
+          set -euxo pipefail
+          conda activate tdenv
+          cd "${GITHUB_WORKSPACE}"/llm-target-determinator
+          aws s3 cp "s3://target-determinator-assets/indexes/indexer-functions.zip" "indexer-functions.zip" --recursive
+          unzip indexer-functions.zip -d assets/indexer-functions
+          aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip "indexer-files.zip" --recursive
+          unzip indexer-functions.zip -d assets/indexer-files
+          ls assets
+          ls assets/indexer-files
+
       - name: Run Retriever
         shell: bash -l {0}
         run: |
