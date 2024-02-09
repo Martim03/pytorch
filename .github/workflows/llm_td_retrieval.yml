@@ -14,7 +14,6 @@ permissions:
 jobs:
   index:
     runs-on: linux.g5.4xlarge.nvidia.gpu
-    environment: target-determinator-env
     steps:
       - name: Clone PyTorch
         uses: actions/checkout@v3
@@ -62,7 +61,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::308535385114:role/gha_target_determinator_s3_read_write
+          role-to-assume: arn:aws:iam::308535385114:role/gha_target_determinator_s3_read
           aws-region: us-east-1
 
       - name: Fetch CodeLlama Checkpoint
