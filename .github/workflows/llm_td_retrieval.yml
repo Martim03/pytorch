@@ -92,13 +92,15 @@ jobs:
           set -euxo pipefail
           conda activate tdenv
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
+          OUTPUT_STEM="../pytorch/.additional_ci_files"
           torchrun \
             --standalone \
             --nnodes=1 \
             --nproc-per-node=1 \
             retriever.py \
             --experiment-name indexer-files \
-            --git-diff
+            --git-diff \
+            --output "${OUTPUT_STEM}/file_diff.json"
 
           torchrun \
             --standalone \
@@ -106,7 +108,8 @@ jobs:
             --nproc-per-node=1 \
             retriever.py \
             --experiment-name indexer-files \
-            --changed-files
+            --changed-files \
+            --output "${OUTPUT_STEM}/file_file.json"
 
           torchrun \
             --standalone \
@@ -114,7 +117,8 @@ jobs:
             --nproc-per-node=1 \
             retriever.py \
             --experiment-name indexer-functions \
-            --git-diff
+            --git-diff \
+            --output "${OUTPUT_STEM}/function_diff.json"
 
           torchrun \
             --standalone \
@@ -122,4 +126,5 @@ jobs:
             --nproc-per-node=1 \
             retriever.py \
             --experiment-name indexer-functions \
-            --changed-files
+            --changed-files \
+            --output "${OUTPUT_STEM}/function_file.json"
