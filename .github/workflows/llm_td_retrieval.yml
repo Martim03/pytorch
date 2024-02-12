@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   index:
-    runs-on: linux.4xlarge.nvidia.gpu
+    runs-on: linux.4xlarge
     steps:
       - name: Clone PyTorch
         uses: actions/checkout@v3
@@ -71,7 +71,7 @@ jobs:
           conda activate tdenv
           cd codellama/
           mkdir "CodeLlama-7b-Python"
-          aws s3 cp "s3://target-determinator-assets/CodeLlama-7b-Python" "CodeLlama-7b-Python" --recursive
+          aws s3 cp "s3://target-determinator-assets/CodeLlama-7b-Python" "CodeLlama-7b-Python" --recursive --no-progress
 
       - name: Fetch indexes
         shell: bash -l {0}
@@ -79,10 +79,10 @@ jobs:
           set -euxo pipefail
           conda activate tdenv
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator/assets
-          aws s3 cp "s3://target-determinator-assets/indexes/indexer-functions.zip" "indexer-functions.zip"
+          aws s3 cp "s3://target-determinator-assets/indexes/indexer-functions.zip" "indexer-functions.zip" --no-progress
           unzip indexer-functions.zip
           rm indexer-functions.zip
-          aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip" "indexer-files.zip"
+          aws s3 cp "s3://target-determinator-assets/indexes/indexer-files.zip" "indexer-files.zip" --no-progress
           unzip indexer-files.zip
           rm indexer-files.zip
 
