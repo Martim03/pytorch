@@ -93,6 +93,7 @@ jobs:
           conda activate tdenv
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
           OUTPUT_STEM="../pytorch/.additional_ci_files"
+          mkdir -p "${OUTPUT_STEM}"
           torchrun \
             --standalone \
             --nnodes=1 \
