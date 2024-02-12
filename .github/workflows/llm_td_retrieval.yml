@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   index:
-    runs-on: linux.g5.4xlarge.nvidia.gpu
+    runs-on: linux.4xlarge.nvidia.gpu
     steps:
       - name: Clone PyTorch
         uses: actions/checkout@v3
