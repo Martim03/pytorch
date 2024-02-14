@@ -94,38 +94,22 @@ jobs:
           cd "${GITHUB_WORKSPACE}"/llm-target-determinator
           OUTPUT_STEM="../pytorch/.additional_ci_files"
           mkdir -p "${OUTPUT_STEM}"
-          torchrun \
-            --standalone \
-            --nnodes=1 \
-            --nproc-per-node=1 \
-            retriever.py \
+          retriever.py \
             --experiment-name indexer-files \
             --git-diff \
             --output "${OUTPUT_STEM}/file_diff.json"
 
-          torchrun \
-            --standalone \
-            --nnodes=1 \
-            --nproc-per-node=1 \
-            retriever.py \
+          retriever.py \
             --experiment-name indexer-files \
             --changed-files \
             --output "${OUTPUT_STEM}/file_file.json"
 
-          torchrun \
-            --standalone \
-            --nnodes=1 \
-            --nproc-per-node=1 \
-            retriever.py \
+          retriever.py \
             --experiment-name indexer-functions \
             --git-diff \
             --output "${OUTPUT_STEM}/function_diff.json"
 
-          torchrun \
-            --standalone \
-            --nnodes=1 \
-            --nproc-per-node=1 \
-            retriever.py \
+          retriever.py \
             --experiment-name indexer-functions \
             --changed-files \
             --output "${OUTPUT_STEM}/function_file.json"
