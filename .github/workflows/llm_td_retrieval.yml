@@ -101,3 +101,12 @@ jobs:
             retriever.py \
             --experiment-names indexer-files indexer-functions \
             --pr-items gitdiff changedfiles
+
+      - name: Upload files
+        shell: bash
+        run: |
+          cd "${GITHUB_WORKSPACE}/pytorch"
+          HEAD_SHA=$(git rev-parse HEAD)
+          cd "${GITHUB_WORKSPACE}/llm-target-determinator/mappings"
+          zip -r "mappings.zip" .
+          aws s3 cp "mappings.zip" "s3://target-determinator-assets/pytorch/mappings/${HEAD_SHA}.zip" --recursive --no-progress
