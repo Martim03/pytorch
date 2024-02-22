@@ -109,4 +109,4 @@ jobs:
           HEAD_SHA=$(git rev-parse HEAD)
           cd "${GITHUB_WORKSPACE}/llm-target-determinator/mappings"
           zip -r "mappings.zip" .
-          aws s3 cp "mappings.zip" "s3://target-determinator-assets/pytorch/mappings/${HEAD_SHA}.zip" --recursive --no-progress
+          aws s3 cp "mappings.zip" "s3://target-determinator-assets/pytorch/mappings/${HEAD_SHA}" --recursive --no-progress
