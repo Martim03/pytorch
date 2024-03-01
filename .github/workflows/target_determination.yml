@@ -35,6 +35,12 @@ jobs:
           cache_dir: .pytest_cache
           job_identifier: ${{ github.workflow }}
 
+      - name: Download LLM Artifacts from S3
+        uses: seemethere/download-artifact-s3@v4
+        with:
+          name: llm_results
+          path: ${GITHUB_WORKSPACE}/.additional_ci_files/llm_results.zip
+
       - name: Do TD
         id: td
         continue-on-error: true
@@ -50,6 +56,9 @@ jobs:
           JOB_NAME: ${{ steps.get-job-id.outputs.job-name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          unzip -o ${GITHUB_WORKSPACE}/.additional_ci_files/llm_results.zip -d ${GITHUB_WORKSPACE}/.additional_ci_files
+          ls
+          ls ${GITHUB_WORKSPACE}/.additional_ci_files
           python3 -m pip install boto3==1.19.12
           python3 tools/testing/do_target_determination_for_s3.py
 
