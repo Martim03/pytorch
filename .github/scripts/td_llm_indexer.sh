@@ -17,7 +17,8 @@ torchrun \
     --nnodes=1 \
     --nproc-per-node=1 \
     indexer.py \
-    --experiment-name indexer-files
+    --experiment-name indexer-files \
+    --granularity FUNCTION
 
 # Upload the index to S3
 cd ../llm-target-determinator/assets
