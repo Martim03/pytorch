@@ -3,14 +3,14 @@
 set -euxo pipefail
 
 # Download requirements
-pip install awscli==1.32.18
+pip install -q awscli==1.32.18
 cd llm-target-determinator
-pip install -r requirements.txt
+pip install -r -q requirements.txt
 cd ../codellama
 pip install -e .
 
 # Run indexer
-cd "${GITHUB_WORKSPACE}"/llm-target-determinator
+cd ../llm-target-determinator
 
 python create_filelist.py
 
