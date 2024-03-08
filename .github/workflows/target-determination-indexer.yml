@@ -50,14 +50,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: osalpekar/codellama
-          ref: main
+          ref: 1ec50e0cfc0fadc3b6ceb146617e2119ab26eb34
           path: codellama
 
       - name: Clone Target Determination Code
         uses: actions/checkout@v3
         with:
           repository: osalpekar/llm-target-determinator
-          ref: main
+          ref: edc38e4577468406456e310dc52fd8683d8af7c8
           path: llm-target-determinator
 
       - name: Configure AWS credentials
@@ -66,11 +66,9 @@ jobs:
           role-to-assume: arn:aws:iam::308535385114:role/gha_target_determinator_s3_read_write
           aws-region: us-east-1
 
-      - name: Install Requirements
-        shell: bash -l {0}
+      - name: Download checkpoint
+        shell: bash
         env:
-          DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
           # Do this outside of docker so I don't have to put env vars in
@@ -82,9 +80,14 @@ jobs:
             "s3://target-determinator-assets/CodeLlama-7b-Python" \
             "CodeLlama-7b-Python" \
             --recursive
-          cd ..
 
-
+      - name: Install Requirements
+        shell: bash -l {0}
+        env:
+          DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
           # detached container should get cleaned up by teardown_ec2_linux
           container_name=$(docker run \
             ${GPU_FLAG:-} \
