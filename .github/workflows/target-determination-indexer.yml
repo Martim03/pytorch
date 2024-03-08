@@ -74,8 +74,8 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           # Do this outside of docker so I don't have to put env vars in
-          pip3 install awscli==1.32.18
-          cd ../codellama
+          pip3 install awscli==1.29.40
+          cd codellama
           # Download checkpoint
           mkdir "CodeLlama-7b-Python"
           aws s3 cp \

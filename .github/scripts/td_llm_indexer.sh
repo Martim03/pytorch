@@ -30,15 +30,6 @@ ZIP_NAME = "indexer-files-${TIMESTAMP}.zip"
 # Create a zipfile with all the generated indices
 zip -r "${ZIP_NAME}" indexer-files
 
-# Move the old index into the archived/ folder
-aws s3 cp \
-"s3://target-determinator-assets/indexes/latest/*" \
-"s3://target-determinator-assets/indexes/archived/"
-
-# Move the new index into the latestl/ folder
-aws s3 cp \
-"${ZIP_NAME}" \
-"s3://target-determinator-assets/indexes/latest/${ZIP_NAME}"
 
 # Note that because the above 2 operations are not atomic, there will
 # be a period of a few seconds between these where there is no index
