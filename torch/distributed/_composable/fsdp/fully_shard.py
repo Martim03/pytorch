@@ -4,11 +4,10 @@ import typing_extensions
 
 import torch
 import torch.nn as nn
-
 from torch.distributed._composable import contract
 from torch.distributed._tensor import DeviceMesh, DTensor
 
-from ._fsdp_api import MixedPrecisionPolicy
+from ._fsdp_api import MixedPrecisionPolicy, OffloadPolicy
 from ._fsdp_common import FSDPMeshInfo, HSDPMeshInfo
 from ._fsdp_init import (
     _get_device_from_mesh,
@@ -31,6 +30,7 @@ def fully_shard(
     mesh: Optional[DeviceMesh] = None,
     reshard_after_forward: Union[bool, int] = True,
     mp_policy: MixedPrecisionPolicy = MixedPrecisionPolicy(),
+    offload_policy: OffloadPolicy = OffloadPolicy(),
 ):
     """
     Shard module parameters across data parallel workers.
@@ -91,11 +91,16 @@ def fully_shard(
         mp_policy (MixedPrecisionPolicy): This controls the mixed precision
             policy, which offers parameter/reduction mixed precision for this
             module. See :class:`MixedPrecisionPolicy` for details.
+        offload_policy (OffloadPolicy): This controls the offloading policy,
+            which offers parameter/gradient/optimizer state offloading. See
+            :class:`OffloadPolicy` for details.
     """
     if isinstance(module, (nn.ModuleList, nn.ModuleDict)):
         raise ValueError(
             f"fully_shard does not support containers that do not implement forward: {module}"
         )
+    if (offload_type := offload_policy.offload_type) not in (None, "cpu"):
+        raise ValueError(f"Offloading only supports 'cpu', not {offload_type}")
     mesh = mesh or _init_default_fully_shard_mesh()
     if mesh.ndim not in (1, 2):
         raise ValueError(f"fully_shard expects a 1D or 2D DeviceMesh but got {mesh}")
@@ -116,7 +121,13 @@ def fully_shard(
     _move_states_to_device(params, buffers, device, mesh_info)
     if params:
         state._fsdp_param_group = FSDPParamGroup(
-            params, module, mesh_info, post_forward_mesh_info, device, mp_policy
+            params,
+            module,
+            mesh_info,
+            post_forward_mesh_info,
+            device,
+            mp_policy,
+            offload_policy,
         )
 
     # for dynamo
@@ -238,6 +249,8 @@ class FSDP:
                     padded_local_tensor = local_tensor.new_zeros(padded_sharded_size)
                     padded_local_tensor[: local_tensor.size(0)].copy_(local_tensor)
                     local_tensor = padded_local_tensor
+                if fsdp_param.offload_to_cpu and not local_tensor.is_pinned():
+                    local_tensor = local_tensor.cpu().pin_memory()
                 fsdp_param._sharded_param_data = local_tensor.view(-1)
                 assert isinstance(fsdp_param.sharded_param, DTensor)  # mypy
                 fsdp_param.sharded_param._local_tensor = local_tensor[

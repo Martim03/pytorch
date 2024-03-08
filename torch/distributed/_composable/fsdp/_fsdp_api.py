@@ -59,6 +59,24 @@ class MixedPrecisionPolicy:
             object.__setattr__(self, "reduce_dtype", None)
 
 
+@dataclass
+class OffloadPolicy:
+    """
+    Attributes:
+        offload_type (Optional[str]): This specifies the type of offloading.
+            Currently, only CPU offloading is suppored by passing ``"cpu"``.
+            Sharded parameters are offloaded to CPU and copied host-to-device
+            as needed before all-gather. The all-gathered parameters are freed
+            according to ``reshard_after_forward``. Sharded gradients are
+            copied device-to-host, and the optimizer step runs on CPU with CPU
+            optimizer states. (Default: ``None``)
+    """
+
+    # Only support "cpu" for now but can add NVMe in the future, in which case
+    # we need to add a directory field
+    offload_type: Optional[str] = None
+
+
 @dataclass(frozen=True)
 class FSDPTensorExtensions:
     # fsdp_pre_all_gather(sharded_param) -> (all_gather_inputs, metadata)
