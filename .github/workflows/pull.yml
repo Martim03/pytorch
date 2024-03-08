@@ -28,6 +28,7 @@ jobs:
   target-determination:
     name: before-test
     uses: ./.github/workflows/target_determination.yml
+    needs: llm-td
     permissions:
       id-token: write
       contents: read
