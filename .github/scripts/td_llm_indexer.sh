@@ -12,8 +12,6 @@ pip install -e .
 # Run indexer
 cd ../llm-target-determinator
 
-python create_filelist.py
-
 torchrun \
     --standalone \
     --nnodes=1 \
