@@ -5,7 +5,7 @@ set -euxo pipefail
 # Download requirements
 pip install -q awscli==1.32.18
 cd llm-target-determinator
-pip install -r -q requirements.txt
+pip install -q -r requirements.txt
 cd ../codellama
 pip install -e .
 
