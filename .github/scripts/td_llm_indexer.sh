@@ -3,7 +3,6 @@
 set -euxo pipefail
 
 # Download requirements
-pip install -q awscli==1.32.18
 cd llm-target-determinator
 pip install -q -r requirements.txt
 cd ../codellama
@@ -17,5 +16,13 @@ torchrun \
     --nnodes=1 \
     --nproc-per-node=1 \
     indexer.py \
-    --experiment-name indexer-files \
+    --experiment-name indexer-functions \
     --granularity FUNCTION
+
+torchrun \
+    --standalone \
+    --nnodes=1 \
+    --nproc-per-node=1 \
+    indexer.py \
+    --experiment-name indexer-files \
+    --granularity FILES
