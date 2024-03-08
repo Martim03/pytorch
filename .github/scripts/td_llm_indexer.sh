@@ -22,7 +22,7 @@ torchrun \
     --experiment-name indexer-files
 
 # Upload the index to S3
-cd "${GITHUB_WORKSPACE}"/llm-target-determinator/assets
+cd ../llm-target-determinator/assets
 
 TIMESTAMP=$(date -Iseconds)
 ZIP_NAME = "indexer-files-${TIMESTAMP}.zip"
