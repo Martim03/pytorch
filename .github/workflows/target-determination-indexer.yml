@@ -100,9 +100,30 @@ jobs:
             -w /var/lib/jenkins/workspace \
             "${DOCKER_IMAGE}"
           )
-
           chmod +x pytorch/.github/scripts/td_llm_indexer.sh
           docker exec -t "${container_name}" sh -c 'pytorch/.github/scripts/td_llm_indexer.sh'
+
+      - name: Upload to s3
+        shell: bash -l {0}
+        env:
+          DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          # Upload the index to S3
+          cd llm-target-determinator/assets
+
+          TIMESTAMP=$(date -Iseconds)
+          ZIP_NAME="indexer-files-${TIMESTAMP}.zip"
+
+          # Create a zipfile with all the generated indices
+          zip -r "${ZIP_NAME}" indexer-files
+
+          # Note that because the above 2 operations are not atomic, there will
+          # be a period of a few seconds between these where there is no index
+          # present in the latest/ folder. To account for this, the retriever
+          # should have some retry logic with backoff to ensure fetching the
+          # index doesn't fail.
 
           cd llm-target-determinator
           # Move the old index into the archived/ folder
