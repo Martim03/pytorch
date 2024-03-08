@@ -996,7 +996,14 @@ class GraphLowering(torch.fx.Interpreter):
                         and not is_input_for_as_strided
                     ):
                         stride_order = ir.NHWC_STRIDE_ORDER
-                    result = ir.ExternKernel.require_stride_order(result, stride_order)
+
+                    allow_padding = (
+                        n.name not in self.user_visible_outputs
+                        and not is_input_for_as_strided
+                    )
+                    result = ir.ExternKernel.require_stride_order(
+                        result, stride_order, allow_padding=allow_padding
+                    )
 
             # Realize if (1) any user need inputs realized, or (2) there is
             # already too many reads and rematerializing can be bad.
@@ -1040,7 +1047,9 @@ class GraphLowering(torch.fx.Interpreter):
                                 need_fixed_layout += [torch.ops.mkl._mkl_linear.default]
                         if user.target in need_fixed_layout:
                             result = ir.ExternKernel.require_stride_order(
-                                result, ir.get_stride_order(n.meta["val"].stride())
+                                result,
+                                ir.get_stride_order(n.meta["val"].stride()),
+                                allow_padding=True,
                             )
                     if user.op == "output":
                         if isinstance(result.data.data, (Pointwise, Reduction)):
