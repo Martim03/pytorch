@@ -566,7 +566,7 @@ class profile:
                         f_evt.thread = fe.thread
 
         # Merge function_events list
-        function_events = function_events.extend(function_events_no_link)
+        function_events.extend(function_events_no_link)
 
         def createFunctionEventForMemoryEvents(evt):
             rel_start_us = evt.start_us() - trace_start_us
