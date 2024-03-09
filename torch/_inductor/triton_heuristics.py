@@ -1436,11 +1436,28 @@ def grid(*numels):
             return numel
         return ceildiv(numel, block)
 
+    max_grid_dims = config.triton.max_tiles
+
     def grid_fn(meta):
+        x_grid = get_grid_dim(xnumel, meta.get("XBLOCK", 1))
+        y_grid = get_grid_dim(ynumel, meta.get("YBLOCK", None))
+
+        MAX_Y_GRID = 65536
+        if znumel is None and max_grid_dims <= 2:
+            div = ceildiv(y_grid, MAX_Y_GRID)
+            y_grid = y_grid // div
+            z_grid = div
+        else:
+            z_grid = get_grid_dim(znumel, meta.get("ZBLOCK", None))
+            torch._check(
+                y_grid <= 65535,
+                lambda: f"Generated y grid behind 2^16 ({y_grid}) not supported with z dimension present. File issue",
+            )
+
         return (
-            get_grid_dim(xnumel, meta.get("XBLOCK", 1)),
-            get_grid_dim(ynumel, meta.get("YBLOCK", None)),
-            get_grid_dim(znumel, meta.get("ZBLOCK", None)),
+            x_grid,
+            y_grid,
+            z_grid,
         )
 
     return grid_fn
