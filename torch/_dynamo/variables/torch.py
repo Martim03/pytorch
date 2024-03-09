@@ -18,6 +18,7 @@ from torch._streambase import _StreamBase
 from ..._guards import TracingContext
 from .. import config, polyfill, variables
 from ..codegen import PyCodegen
+from ..create_parameter_op import new_parameter_placeholder, tracable_create_parameter
 from ..device_interface import get_registered_device_interfaces
 from ..exc import unimplemented
 from ..guards import GuardBuilder, install_guard
@@ -783,10 +784,30 @@ Either create the tensor outside the compiled region, or do not set the tensor t
             unimplemented(f"Parameter(data={data}) not implemented")
 
         # this results in cleaner graphs, but only works for inputs
-        if data.source:
-            return cls._nn_param_via_prefix_insert(tx, data, requires_grad)
+        # disabled for CI testing
+        # if data.source:
+        #     return cls._nn_param_via_prefix_insert(tx, data, requires_grad)
 
-        unimplemented("Parameter() on non-input")
+        try:
+            shape = tuple(data.var_getattr(tx, "shape").as_python_constant())
+            dtype = data.var_getattr(tx, "dtype").as_python_constant()
+            device = data.var_getattr(tx, "device").as_python_constant()
+        except NotImplementedError as e:
+            unimplemented(f"Parameter not python_constant: {e}")
+
+        placeholder = tx.output.synthetic_graph_input(
+            new_parameter_placeholder, [shape, dtype, device, requires_grad]
+        )
+        if data.requires_grad:
+            data = data.call_method(tx, "detach", [], {})
+        result = TorchInGraphFunctionVariable(tracable_create_parameter).call_function(
+            tx, [data, placeholder], {}
+        )
+        assert isinstance(result, variables.TensorVariable)
+        result.class_type = torch.nn.Parameter
+        # In reconstruct() should use the original parameter.  The one returned by the graph will be an alias.
+        result.source = placeholder.source
+        return result
 
     @staticmethod
     def _nn_param_via_prefix_insert(tx, data, requires_grad):
